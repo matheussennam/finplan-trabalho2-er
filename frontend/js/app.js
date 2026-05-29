@@ -1,5 +1,7 @@
 const API_URL = 'http://localhost:8080/api';
 const AUTH_STORAGE_KEY = 'finplanAuth';
+let fluxoCaixaChartInstance = null;
+let despesasCategoriaChartInstance = null;
 
 function getCurrentPage() {
     const pathname = window.location.pathname;
@@ -149,7 +151,11 @@ function criarGraficoFluxoCaixa() {
     const ctx = document.getElementById('fluxoCaixaChart')?.getContext('2d');
     if (!ctx) return;
 
-    new Chart(ctx, {
+    if (fluxoCaixaChartInstance) {
+        fluxoCaixaChartInstance.destroy();
+    }
+
+    fluxoCaixaChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: ['1 Mai', '8 Mai', '15 Mai', '22 Mai', '28 Mai'],
@@ -207,7 +213,11 @@ function criarGraficoDespesasCategoria(despesasPorCategoria) {
     const valores = Object.values(despesasPorCategoria);
     const total = valores.reduce((a, b) => a + b, 0);
 
-    new Chart(ctx, {
+    if (despesasCategoriaChartInstance) {
+        despesasCategoriaChartInstance.destroy();
+    }
+
+    despesasCategoriaChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: categorias,
@@ -235,8 +245,9 @@ function criarGraficoDespesasCategoria(despesasPorCategoria) {
         }
     });
 
-    const legendaContainer = document.getElementById('despesasCategoriaChart')?.parentNode;
+    const legendaContainer = document.getElementById('despesasCategoriaLegenda');
     if (legendaContainer) {
+        legendaContainer.innerHTML = '';
         let html = '<div class="mt-4 space-y-2">';
         categorias.forEach((cat, index) => {
             const percentual = ((valores[index] / total) * 100).toFixed(0);
