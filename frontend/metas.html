@@ -81,31 +81,60 @@
         </main>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=20260529"></script>
     <script>
-        const apiFetch = window.apiFetch;
+        const API_BASE_METAS = 'http://localhost:8080/api';
+
+        function apiFetch(path, options = {}) {
+            const fallback = { usuario: 'aluno', senha: '123456' };
+            let auth = fallback;
+            try {
+                const raw = sessionStorage.getItem('finplanAuth');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed?.usuario && parsed?.senha) auth = parsed;
+                }
+            } catch {}
+
+            const authHeader = 'Basic ' + btoa(`${auth.usuario}:${auth.senha}`);
+            const headers = {
+                Authorization: authHeader,
+                ...(options.headers || {})
+            };
+            return fetch(`${API_BASE_METAS}${path}`, { ...options, headers });
+        }
 
         function moeda(valor) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor || 0));
         }
 
         function dataPt(data) {
+            if (typeof data === 'string' && /^\d{4}-\d{2}-\d{2}/.test(data)) {
+                const base = data.slice(0, 10);
+                const [ano, mes, dia] = base.split('-').map(Number);
+                return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+            }
             return new Date(data).toLocaleDateString('pt-BR');
         }
 
         async function carregarMetasPagina() {
-            const res = await apiFetch('/metas');
-            const metas = await res.json();
             const lista = document.getElementById('listaMetas');
+            try {
+                const res = await apiFetch('/metas');
+                if (!res.ok) {
+                    lista.innerHTML = '<p class="text-red-400">Falha ao carregar metas.</p>';
+                    return;
+                }
+                const metas = await res.json();
 
-            if (!metas.length) {
-                lista.innerHTML = '<p class="text-slate-400">Nenhuma meta cadastrada.</p>';
-                return;
-            }
+                if (!metas.length) {
+                    lista.innerHTML = '<p class="text-slate-400">Nenhuma meta cadastrada.</p>';
+                    return;
+                }
 
-            lista.innerHTML = metas.map((m) => {
-                const pct = Number(m.percentualConcluido || 0);
-                return `
+                lista.innerHTML = metas.map((m) => {
+                    const pct = Number(m.percentualConcluido || 0);
+                    return `
                     <article class="bg-slate-800 rounded-lg p-4 border border-slate-700">
                         <div class="flex items-start justify-between gap-3">
                             <div>
@@ -125,15 +154,18 @@
                         </div>
                     </article>
                 `;
-            }).join('');
+                }).join('');
 
-            document.querySelectorAll('.btn-excluir').forEach((btn) => {
-                btn.addEventListener('click', async () => {
-                    if (!confirm('Deseja excluir esta meta?')) return;
-                    await apiFetch(`/metas/${btn.dataset.id}`, { method: 'DELETE' });
-                    await carregarMetasPagina();
+                document.querySelectorAll('.btn-excluir').forEach((btn) => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm('Deseja excluir esta meta?')) return;
+                        await apiFetch(`/metas/${btn.dataset.id}`, { method: 'DELETE' });
+                        await carregarMetasPagina();
+                    });
                 });
-            });
+            } catch (err) {
+                lista.innerHTML = '<p class="text-red-400">Erro ao carregar metas.</p>';
+            }
         }
 
         document.getElementById('formMeta').addEventListener('submit', async (e) => {

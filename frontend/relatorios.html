@@ -86,9 +86,28 @@
         </main>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=20260529"></script>
     <script>
-        const apiFetch = window.apiFetch;
+        const API_BASE_RELATORIOS = 'http://localhost:8080/api';
+
+        function apiFetch(path, options = {}) {
+            const fallback = { usuario: 'aluno', senha: '123456' };
+            let auth = fallback;
+            try {
+                const raw = sessionStorage.getItem('finplanAuth');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed?.usuario && parsed?.senha) auth = parsed;
+                }
+            } catch {}
+
+            const authHeader = 'Basic ' + btoa(`${auth.usuario}:${auth.senha}`);
+            const headers = {
+                Authorization: authHeader,
+                ...(options.headers || {})
+            };
+            return fetch(`${API_BASE_RELATORIOS}${path}`, { ...options, headers });
+        }
 
         function moeda(valor) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor || 0));
