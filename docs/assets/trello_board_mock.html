@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trello - Fluxo de Desenvolvimento FinPlan</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;background:#0f172a;color:#0b1020}
+  .top{height:54px;background:#0d1424;color:#dbeafe;display:flex;align-items:center;padding:0 16px;font-weight:700}
+  .board{padding:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;background:linear-gradient(180deg,#1e293b,#0f172a);min-height:860px}
+  .list{background:#e5e7eb;border-radius:12px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+  .list h3{margin:4px 4px 10px;font-size:15px;color:#111827}
+  .card{background:#fff;border-radius:10px;padding:10px;margin:8px 4px;border:1px solid #e5e7eb;box-shadow:0 1px 0 rgba(9,30,66,.15)}
+  .card .t{font-size:13px;font-weight:700;color:#111827}
+  .card .s{font-size:12px;color:#374151;margin-top:4px;line-height:1.35}
+  .badge{display:inline-block;background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:2px 8px;font-size:11px;margin-bottom:6px}
+  .done{background:#dcfce7;color:#166534}
+  .prog{background:#fee2e2;color:#991b1b}
+  .rev{background:#fef9c3;color:#854d0e}
+</style>
+</head>
+<body>
+  <div class="top">Trabalho II - Engenharia de Requisitos - FinPlan (Trello)</div>
+  <section class="board">
+    <div class="list">
+      <h3>Backlog</h3>
+      <div class="card"><div class="badge">US01</div><div class="t">Cadastro de Transações</div><div class="s">Checklist: API, Tela, Integração, Testes</div></div>
+      <div class="card"><div class="badge">US02</div><div class="t">Gestão de Metas</div><div class="s">Checklist: API, Tela, Progresso, Testes</div></div>
+      <div class="card"><div class="badge">US03</div><div class="t">Dashboard Consolidado</div><div class="s">Resumo, saldo e metas concluídas</div></div>
+      <div class="card"><div class="badge">US04</div><div class="t">Relatórios</div><div class="s">Categorias, totais e visão mensal</div></div>
+    </div>
+    <div class="list">
+      <h3>Em Desenvolvimento</h3>
+      <div class="card"><div class="badge prog">CARD-01</div><div class="t">RF Primário: Transações</div><div class="s">Backend /api/transacoes + tela transacoes.html</div></div>
+      <div class="card"><div class="badge prog">CARD-02</div><div class="t">RF Secundário: Metas</div><div class="s">Backend /api/metas + tela metas.html</div></div>
+    </div>
+    <div class="list">
+      <h3>Revisão/Testes</h3>
+      <div class="card"><div class="badge rev">CARD-03</div><div class="t">Dashboard + Relatórios</div><div class="s">Integração com /api/transacoes/resumo e /api/metas/resumo</div></div>
+      <div class="card"><div class="badge rev">CARD-04</div><div class="t">Banco + Spring Boot</div><div class="s">Conferência de tabelas e logs de execução</div></div>
+    </div>
+    <div class="list">
+      <h3>Concluído</h3>
+      <div class="card"><div class="badge done">DONE</div><div class="t">Modelagem de dados</div><div class="s">Tabelas transacoes e metas_financeiras</div></div>
+      <div class="card"><div class="badge done">DONE</div><div class="t">Front-end completo</div><div class="s">Dashboard, Transações, Metas e Relatórios</div></div>
+      <div class="card"><div class="badge done">DONE</div><div class="t">Documentação final</div><div class="s">User stories, entrevistas e evidências</div></div>
+    </div>
+  </section>
+</body>
+</html>

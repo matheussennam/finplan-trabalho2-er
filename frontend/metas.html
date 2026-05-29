@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinPlan - Metas Financeiras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-slate-900 border-r border-slate-700 hidden md:block">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-wallet text-blue-500"></i> FinPlan
+                </h1>
+            </div>
+            <nav class="mt-6">
+                <a href="index.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="transacoes.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-exchange-alt"></i> Transações
+                </a>
+                <a href="metas.html" class="flex items-center gap-3 px-6 py-3 text-blue-400 bg-slate-800 border-r-4 border-blue-500">
+                    <i class="fas fa-chart-line"></i> Metas Financeiras
+                </a>
+                <a href="relatorios.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-file-alt"></i> Relatórios
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto">
+            <header class="glass sticky top-0 z-50 border-b border-slate-700">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <h2 class="text-2xl font-bold text-white">Metas Financeiras</h2>
+                </div>
+            </header>
+
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <section class="glass rounded-xl border border-slate-700 p-5 lg:col-span-1">
+                    <h3 class="text-lg font-semibold text-white mb-4">Nova Meta</h3>
+                    <form id="formMeta" class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">Nome</label>
+                            <input name="nome" required class="w-full bg-slate-800 text-white rounded-lg px-3 py-2 border border-slate-600" />
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">Valor alvo</label>
+                            <input name="valorAlvo" type="number" step="0.01" min="0.01" required class="w-full bg-slate-800 text-white rounded-lg px-3 py-2 border border-slate-600" />
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">Valor atual</label>
+                            <input name="valorAtual" type="number" step="0.01" min="0" value="0" class="w-full bg-slate-800 text-white rounded-lg px-3 py-2 border border-slate-600" />
+                        </div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-1">Data final</label>
+                            <input name="dataFim" type="date" required class="w-full bg-slate-800 text-white rounded-lg px-3 py-2 border border-slate-600" />
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Salvar Meta</button>
+                    </form>
+                    <p id="statusMeta" class="text-sm text-slate-400 mt-3"></p>
+                </section>
+
+                <section class="glass rounded-xl border border-slate-700 p-5 lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Metas Cadastradas</h3>
+                        <button id="btnAtualizar" class="text-sm text-blue-400 hover:underline">Atualizar</button>
+                    </div>
+                    <div id="listaMetas" class="space-y-3"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+
+        function moeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor || 0));
+        }
+
+        function dataPt(data) {
+            return new Date(data).toLocaleDateString('pt-BR');
+        }
+
+        async function carregarMetasPagina() {
+            const res = await fetch(`${API_URL}/metas`);
+            const metas = await res.json();
+            const lista = document.getElementById('listaMetas');
+
+            if (!metas.length) {
+                lista.innerHTML = '<p class="text-slate-400">Nenhuma meta cadastrada.</p>';
+                return;
+            }
+
+            lista.innerHTML = metas.map((m) => {
+                const pct = Number(m.percentualConcluido || 0);
+                return `
+                    <article class="bg-slate-800 rounded-lg p-4 border border-slate-700">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h4 class="text-white font-semibold">${m.nome}</h4>
+                                <p class="text-slate-400 text-sm">Fim: ${dataPt(m.dataFim)}</p>
+                            </div>
+                            <button data-id="${m.id}" class="btn-excluir text-red-400 hover:text-red-300" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="mt-3 w-full bg-slate-700 rounded-full h-2">
+                            <div class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" style="width:${Math.min(100, pct)}%"></div>
+                        </div>
+                        <div class="mt-2 flex justify-between text-sm">
+                            <span class="text-slate-300">${moeda(m.valorAtual)} / ${moeda(m.valorAlvo)}</span>
+                            <span class="text-blue-400 font-semibold">${pct.toFixed(2)}%</span>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            document.querySelectorAll('.btn-excluir').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('Deseja excluir esta meta?')) return;
+                    await fetch(`${API_URL}/metas/${btn.dataset.id}`, { method: 'DELETE' });
+                    await carregarMetasPagina();
+                });
+            });
+        }
+
+        document.getElementById('formMeta').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const payload = {
+                nome: fd.get('nome'),
+                valorAlvo: Number(fd.get('valorAlvo')),
+                valorAtual: Number(fd.get('valorAtual') || 0),
+                dataFim: fd.get('dataFim')
+            };
+
+            const status = document.getElementById('statusMeta');
+            try {
+                await fetch(`${API_URL}/metas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                e.target.reset();
+                status.textContent = 'Meta salva com sucesso.';
+                status.className = 'text-sm text-green-400 mt-3';
+                await carregarMetasPagina();
+            } catch (err) {
+                status.textContent = 'Erro ao salvar meta.';
+                status.className = 'text-sm text-red-400 mt-3';
+            }
+        });
+
+        document.getElementById('btnAtualizar').addEventListener('click', carregarMetasPagina);
+        document.addEventListener('DOMContentLoaded', carregarMetasPagina);
+    </script>
+</body>
+</html>

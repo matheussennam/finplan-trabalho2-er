@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinPlan - Relatórios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-slate-900 border-r border-slate-700 hidden md:block">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-wallet text-blue-500"></i> FinPlan
+                </h1>
+            </div>
+            <nav class="mt-6">
+                <a href="index.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="transacoes.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-exchange-alt"></i> Transações
+                </a>
+                <a href="metas.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-chart-line"></i> Metas Financeiras
+                </a>
+                <a href="relatorios.html" class="flex items-center gap-3 px-6 py-3 text-blue-400 bg-slate-800 border-r-4 border-blue-500">
+                    <i class="fas fa-file-alt"></i> Relatórios
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto">
+            <header class="glass sticky top-0 z-50 border-b border-slate-700">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <h2 class="text-2xl font-bold text-white">Relatórios</h2>
+                    <button id="btnRecarregar" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">Recarregar</button>
+                </div>
+            </header>
+
+            <div class="p-6 space-y-6">
+                <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <article class="glass rounded-xl border border-slate-700 p-4">
+                        <p class="text-slate-400 text-sm">Total de Receitas</p>
+                        <p id="rReceitas" class="text-2xl font-bold text-green-400 mt-1">R$ 0,00</p>
+                    </article>
+                    <article class="glass rounded-xl border border-slate-700 p-4">
+                        <p class="text-slate-400 text-sm">Total de Despesas</p>
+                        <p id="rDespesas" class="text-2xl font-bold text-red-400 mt-1">R$ 0,00</p>
+                    </article>
+                    <article class="glass rounded-xl border border-slate-700 p-4">
+                        <p class="text-slate-400 text-sm">Saldo no Período</p>
+                        <p id="rSaldo" class="text-2xl font-bold text-blue-400 mt-1">R$ 0,00</p>
+                    </article>
+                </section>
+
+                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <article class="glass rounded-xl border border-slate-700 p-5">
+                        <h3 class="text-lg font-semibold text-white mb-3">Despesas por Categoria</h3>
+                        <div id="rCategorias" class="space-y-2"></div>
+                    </article>
+
+                    <article class="glass rounded-xl border border-slate-700 p-5">
+                        <h3 class="text-lg font-semibold text-white mb-3">Resumo de Metas</h3>
+                        <div class="space-y-2 text-slate-300">
+                            <p>Total de metas: <strong id="rTotalMetas" class="text-white">0</strong></p>
+                            <p>Metas concluídas: <strong id="rConcluidas" class="text-white">0</strong></p>
+                            <p>Metas ativas: <strong id="rAtivas" class="text-white">0</strong></p>
+                            <p>Taxa de conclusão: <strong id="rTaxa" class="text-blue-400">0%</strong></p>
+                        </div>
+                    </article>
+                </section>
+
+                <p id="statusRelatorio" class="text-sm text-slate-400"></p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+
+        function moeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor || 0));
+        }
+
+        async function carregarRelatorios() {
+            const status = document.getElementById('statusRelatorio');
+            status.textContent = 'Carregando...';
+
+            try {
+                const inicio = '2026-05-01';
+                const fim = '2026-05-28';
+
+                const [resumoResp, metasResp] = await Promise.all([
+                    fetch(`${API_URL}/transacoes/resumo?inicio=${inicio}&fim=${fim}`),
+                    fetch(`${API_URL}/metas/resumo`)
+                ]);
+
+                const resumo = await resumoResp.json();
+                const metas = await metasResp.json();
+
+                const receitas = Number(resumo.totalReceitas || 0);
+                const despesas = Number(resumo.totalDespesas || 0);
+                const saldo = receitas - despesas;
+
+                document.getElementById('rReceitas').textContent = moeda(receitas);
+                document.getElementById('rDespesas').textContent = moeda(despesas);
+                document.getElementById('rSaldo').textContent = moeda(saldo);
+
+                const cats = resumo.despesasPorCategoria || {};
+                const totalCategorias = Object.values(cats).reduce((a, b) => a + Number(b), 0);
+                const catContainer = document.getElementById('rCategorias');
+
+                if (!Object.keys(cats).length) {
+                    catContainer.innerHTML = '<p class="text-slate-400">Sem dados de categorias.</p>';
+                } else {
+                    catContainer.innerHTML = Object.entries(cats).map(([cat, valor]) => {
+                        const pct = totalCategorias > 0 ? (Number(valor) / totalCategorias) * 100 : 0;
+                        return `
+                            <div class="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-white">${cat}</span>
+                                    <span class="text-slate-300">${moeda(valor)} (${pct.toFixed(1)}%)</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                const totalMetas = Number(metas.totalMetas || 0);
+                const concluidas = Number(metas.metasConcluidas || 0);
+                const ativas = Array.isArray(metas.metasAtivas) ? metas.metasAtivas.length : 0;
+                const taxa = totalMetas > 0 ? (concluidas / totalMetas) * 100 : 0;
+
+                document.getElementById('rTotalMetas').textContent = String(totalMetas);
+                document.getElementById('rConcluidas').textContent = String(concluidas);
+                document.getElementById('rAtivas').textContent = String(ativas);
+                document.getElementById('rTaxa').textContent = `${taxa.toFixed(1)}%`;
+
+                status.textContent = 'Relatórios atualizados com sucesso.';
+                status.className = 'text-sm text-green-400';
+            } catch (err) {
+                status.textContent = 'Erro ao carregar relatórios.';
+                status.className = 'text-sm text-red-400';
+            }
+        }
+
+        document.getElementById('btnRecarregar').addEventListener('click', carregarRelatorios);
+        document.addEventListener('DOMContentLoaded', carregarRelatorios);
+    </script>
+</body>
+</html>

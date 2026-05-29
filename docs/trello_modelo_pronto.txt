@@ -1,0 +1,65 @@
+TRELLO - MODELO PRONTO (copiar e usar)
+
+COLUNAS:
+1) Backlog
+2) Em Desenvolvimento
+3) Revisão/Testes
+4) Concluído
+
+CARTÕES:
+
+[CARD-01] US01 - Cadastro de transações
+Descrição: Como usuário, quero cadastrar receitas e despesas para acompanhar minha situação financeira.
+Checklist:
+- API de transações criada (/api/transacoes)
+- Listagem de transações funcionando
+- Cadastro de transação funcionando
+- Exclusão de transação funcionando
+- Tela transacoes.html integrada
+- Teste manual concluído
+
+[CARD-02] US02 - Gestão de metas financeiras
+Descrição: Como usuário, quero cadastrar metas para acompanhar meu progresso financeiro.
+Checklist:
+- API de metas criada (/api/metas)
+- Resumo de metas funcionando (/api/metas/resumo)
+- Cadastro de meta funcionando
+- Exclusão de meta funcionando
+- Tela metas.html integrada
+- Progresso percentual exibido
+- Teste manual concluído
+
+[CARD-03] US03 - Dashboard consolidado
+Descrição: Como usuário, quero visualizar o resumo financeiro em uma única tela.
+Checklist:
+- Endpoint de resumo funcionando (/api/transacoes/resumo)
+- Dashboard com receitas e despesas
+- Dashboard com saldo
+- Dashboard com metas concluídas
+- Atualização dos dados validada
+
+[CARD-04] US04 - Relatórios
+Descrição: Como usuário, quero visualizar relatórios para apoiar decisões financeiras.
+Checklist:
+- Tela relatorios.html criada
+- Consumo de /api/transacoes/resumo
+- Consumo de /api/metas/resumo
+- Exibição por categoria
+- Resumo final de metas
+
+[CARD-05] Documentação Final
+Checklist:
+- User stories documentadas
+- Cartões de acompanhamento documentados
+- Print do fluxo Trello completo
+- Prints do front-end
+- Prints de teste de API
+- Relatório de entrevistas
+- Link do GitHub no documento
+- PDF único gerado
+
+MOVIMENTAÇÃO SUGERIDA:
+- Começa no Backlog
+- Quando iniciar, move para Em Desenvolvimento
+- Depois de testar, move para Revisão/Testes
+- Após validar evidências, move para Concluído

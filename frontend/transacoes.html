@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinPlan - Transações</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-700 hidden md:block">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-wallet text-blue-500"></i> FinPlan
+                </h1>
+            </div>
+            <nav class="mt-6">
+                <a href="index.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="transacoes.html" class="flex items-center gap-3 px-6 py-3 text-blue-400 bg-slate-800 border-r-4 border-blue-500">
+                    <i class="fas fa-exchange-alt"></i> Transações
+                </a>
+                <a href="metas.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-chart-line"></i> Metas Financeiras
+                </a>
+                <a href="relatorios.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fas fa-file-alt"></i> Relatórios
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <header class="glass sticky top-0 z-50 border-b border-slate-700">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <h2 class="text-2xl font-bold text-white">Transações</h2>
+                    <button onclick="abrirModalTransacao()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fas fa-plus"></i> Nova transação
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-6">
+                <div class="glass rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="p-4 border-b border-slate-700 flex gap-4">
+                        <input type="text" id="filtroDescricao" placeholder="Buscar por descrição..." 
+                               class="bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600 focus:border-blue-500 focus:outline-none flex-1">
+                        <select id="filtroTipo" class="bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600 focus:border-blue-500 focus:outline-none">
+                            <option value="">Todos os tipos</option>
+                            <option value="RECEITA">Receitas</option>
+                            <option value="DESPESA">Despesas</option>
+                        </select>
+                        <select id="filtroCategoria" class="bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600 focus:border-blue-500 focus:outline-none">
+                            <option value="">Todas categorias</option>
+                            <option value="Salário">Salário</option>
+                            <option value="Alimentação">Alimentação</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Moradia">Moradia</option>
+                            <option value="Lazer">Lazer</option>
+                            <option value="Saúde">Saúde</option>
+                        </select>
+                    </div>
+                    
+                    <table class="w-full">
+                        <thead class="bg-slate-800">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Data</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Descrição</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Categoria</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">Tipo</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase">Valor</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-slate-400 uppercase">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaTransacoes" class="divide-y divide-slate-700">
+                            <!-- Preenchido via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="modalTransacao" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="glass rounded-xl p-6 w-full max-w-md border border-slate-700">
+            <h3 class="text-xl font-bold text-white mb-4">Nova Transação</h3>
+            <form id="formTransacao" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">Descrição</label>
+                    <input type="text" name="descricao" required class="w-full bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">Valor</label>
+                    <input type="number" step="0.01" name="valor" required class="w-full bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600">
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">Tipo</label>
+                    <select name="tipo" required class="w-full bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600">
+                        <option value="RECEITA">Receita</option>
+                        <option value="DESPESA">Despesa</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">Categoria</label>
+                    <select name="categoria" required class="w-full bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600">
+                        <option value="Salário">Salário</option>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">Data</label>
+                    <input type="date" name="data" required class="w-full bg-slate-800 text-white rounded-lg px-4 py-2 border border-slate-600">
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="fecharModalTransacao()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg transition">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Carregar transações ao iniciar
+        document.addEventListener('DOMContentLoaded', carregarTransacoes);
+        
+        // Filtros
+        document.getElementById('filtroDescricao')?.addEventListener('input', filtrarTransacoes);
+        document.getElementById('filtroTipo')?.addEventListener('change', filtrarTransacoes);
+        document.getElementById('filtroCategoria')?.addEventListener('change', filtrarTransacoes);
+    </script>
+</body>
+</html>
