@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Trabalho II - Engenharia de Requisitos - FinPlan</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.35;margin:28px;}
+h1,h2,h3{margin:0 0 10px}
+h1{font-size:24px} h2{font-size:19px;border-bottom:1px solid #ddd;padding-bottom:4px;margin-top:28px} h3{font-size:16px;margin-top:16px}
+small{color:#555}
+table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13px}
+th,td{border:1px solid #bbb;padding:7px;vertical-align:top}
+th{background:#f3f4f6;text-align:left}
+pre{white-space:pre-wrap;background:#0b1020;color:#e5e7eb;padding:12px;border-radius:8px;font-size:12px;overflow:auto}
+img{max-width:100%;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px}
+ul{margin-top:4px}
+.pagebreak{page-break-before:always}
+.badge{display:inline-block;background:#e8f0ff;color:#1f3a8a;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:6px}
+</style>
+</head>
+<body>
+<h1>Trabalho IIa Unidade - Engenharia de Requisitos</h1>
+<p><strong>Disciplina:</strong> Engenharia de Requisitos<br/>
+<strong>Professor:</strong> Msc. Elton Figueiredo da Silva<br/>
+<strong>Projeto:</strong> FinPlan - Sistema de Planejamento Financeiro Pessoal<br/>
+<strong>Aluno:</strong> Matheus Senna Mascarenhas<br/>
+<strong>Data:</strong> 29/05/2026</p>
+
+<h2>1. User Stories e Cartões de Acompanhamento</h2>
+<h3>1.1 User Stories</h3>
+<table>
+<tr><th>ID</th><th>User Story</th><th>Critérios de Aceite</th></tr>
+<tr><td>US01</td><td>Como usuário, quero cadastrar receitas e despesas para acompanhar minha situação financeira.</td><td>CRUD de transações funcionando e refletindo no resumo financeiro.</td></tr>
+<tr><td>US02</td><td>Como usuário, quero cadastrar metas para acompanhar minha evolução.</td><td>CRUD de metas funcionando com exibição de percentual de progresso.</td></tr>
+<tr><td>US03</td><td>Como usuário, quero visualizar resumo financeiro em uma única tela.</td><td>Dashboard exibindo receitas, despesas, saldo e metas concluídas.</td></tr>
+<tr><td>US04</td><td>Como usuário, quero visualizar relatórios para apoiar decisões.</td><td>Tela de relatórios com totais, categorias e resumo de metas.</td></tr>
+</table>
+
+<h3>1.2 Cartões de Acompanhamento (Trello)</h3>
+<table>
+<tr><th>Cartão</th><th>Story</th><th>Responsável</th><th>Status</th><th>Evidência</th></tr>
+<tr><td>CARD-01</td><td>US01</td><td>Matheus Sena</td><td>Concluído</td><td>Endpoint <code>/api/transacoes</code> + tela <code>transacoes.html</code>.</td></tr>
+<tr><td>CARD-02</td><td>US02</td><td>Matheus Sena</td><td>Concluído</td><td>Endpoint <code>/api/metas</code> + tela <code>metas.html</code>.</td></tr>
+<tr><td>CARD-03</td><td>US03</td><td>Matheus Sena</td><td>Concluído</td><td>Resumo via <code>/api/transacoes/resumo</code> no dashboard.</td></tr>
+<tr><td>CARD-04</td><td>US04</td><td>Matheus Sena</td><td>Concluído</td><td>Tela <code>relatorios.html</code> com <code>/api/transacoes/resumo</code> e <code>/api/metas/resumo</code>.</td></tr>
+</table>
+
+<h2>2. Imagem do Processo de Desenvolvimento no Trello</h2>
+<p><strong>Fluxo utilizado no Trello:</strong> Backlog -> Em Desenvolvimento -> Revisão/Testes -> Concluído.</p>
+<p><span class="badge">Evidência 1</span> Visão geral do board</p>
+<img src="assets/trello_fluxo.png" alt="Fluxo Trello"/>
+<p><span class="badge">Evidência 2</span> Detalhe de cartão com checklist e status</p>
+<img src="assets/trello_card_detail.png" alt="Detalhe cartão Trello"/>
+
+<div class="pagebreak"></div>
+<h2>3. Front-end Completo do Sistema</h2>
+<p>O front-end foi desenvolvido com HTML, Tailwind e JavaScript, contendo as telas:</p>
+<ul>
+<li>Dashboard (<code>index.html</code>)</li>
+<li>Transações (<code>transacoes.html</code>)</li>
+<li>Metas Financeiras (<code>metas.html</code>)</li>
+<li>Relatórios (<code>relatorios.html</code>)</li>
+</ul>
+
+<p><span class="badge">Dashboard</span></p>
+<img src="assets/dashboard.png" alt="Dashboard"/>
+<p><span class="badge">Transações</span></p>
+<img src="assets/transacoes.png" alt="Transações"/>
+<p><span class="badge">Metas Financeiras</span></p>
+<img src="assets/metas.png" alt="Metas"/>
+<p><span class="badge">Relatórios</span></p>
+<img src="assets/relatorios.png" alt="Relatórios"/>
+
+<h2>4. Back-end (Requisito Primário e Secundário) Integrado a Telas</h2>
+<p><strong>Tecnologia:</strong> Spring Boot 3, Spring Data JPA e MySQL.</p>
+<table>
+<tr><th>Requisito</th><th>Tipo</th><th>Endpoints</th><th>Telas Integradas</th></tr>
+<tr><td>Cadastro de receitas e despesas</td><td>Primário</td><td><code>/api/transacoes</code>, <code>/api/transacoes/resumo</code>, <code>/api/transacoes/ultimas</code></td><td><code>transacoes.html</code>, <code>index.html</code>, <code>relatorios.html</code></td></tr>
+<tr><td>Gestão de metas financeiras</td><td>Secundário</td><td><code>/api/metas</code>, <code>/api/metas/ativas</code>, <code>/api/metas/resumo</code></td><td><code>metas.html</code>, <code>index.html</code>, <code>relatorios.html</code></td></tr>
+</table>
+
+<h3>4.1 Evidência de execução da API</h3>
+<pre>$ curl -s http://localhost:8080/api/transacoes | head -c 300
+[{&quot;id&quot;:1,&quot;descricao&quot;:&quot;Salário&quot;,&quot;valor&quot;:4250.00,&quot;tipo&quot;:&quot;RECEITA&quot;,&quot;categoria&quot;:&quot;Salário&quot;,&quot;data&quot;:&quot;2026-05-01&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:11&quot;},{&quot;id&quot;:2,&quot;descricao&quot;:&quot;Supermercado&quot;,&quot;valor&quot;:320.00,&quot;tipo&quot;:&quot;DESPESA&quot;,&quot;categoria&quot;:&quot;Alimentação&quot;,&quot;data&quot;:&quot;2026-05-05&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:11&quot;},{&quot;i
+
+$ curl -s &#x27;http://localhost:8080/api/transacoes/resumo?inicio=2026-05-01&amp;fim=2026-05-28&#x27;
+{&quot;totalDespesas&quot;:3935.00,&quot;totalReceitas&quot;:9800.00,&quot;despesasPorCategoria&quot;:{&quot;Transporte&quot;:400.00,&quot;Alimentação&quot;:940.00,&quot;Moradia&quot;:1995.00,&quot;Saúde&quot;:430.00,&quot;Lazer&quot;:170.00}}
+
+$ curl -s http://localhost:8080/api/metas/resumo
+{&quot;metasConcluidas&quot;:0,&quot;metasAtivas&quot;:[{&quot;id&quot;:1,&quot;nome&quot;:&quot;Reserva de Emergência&quot;,&quot;valorAlvo&quot;:10000.00,&quot;valorAtual&quot;:3250.00,&quot;dataInicio&quot;:&quot;2026-01-01&quot;,&quot;dataFim&quot;:&quot;2026-12-31&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:11&quot;,&quot;percentualConcluido&quot;:32.50},{&quot;id&quot;:4,&quot;nome&quot;:&quot;Reserva de Emergência&quot;,&quot;valorAlvo&quot;:10000.00,&quot;valorAtual&quot;:3250.00,&quot;dataInicio&quot;:&quot;2026-01-01&quot;,&quot;dataFim&quot;:&quot;2026-12-31&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:20&quot;,&quot;percentualConcluido&quot;:32.50},{&quot;id&quot;:2,&quot;nome&quot;:&quot;Viagem Europa&quot;,&quot;valorAlvo&quot;:8000.00,&quot;valorAtual&quot;:2800.00,&quot;dataInicio&quot;:&quot;2026-03-01&quot;,&quot;dataFim&quot;:&quot;2027-03-01&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:11&quot;,&quot;percentualConcluido&quot;:35.00},{&quot;id&quot;:5,&quot;nome&quot;:&quot;Viagem Europa&quot;,&quot;valorAlvo&quot;:8000.00,&quot;valorAtual&quot;:2800.00,&quot;dataInicio&quot;:&quot;2026-03-01&quot;,&quot;dataFim&quot;:&quot;2027-03-01&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:20&quot;,&quot;percentualConcluido&quot;:35.00},{&quot;id&quot;:3,&quot;nome&quot;:&quot;Comprar Carro&quot;,&quot;valorAlvo&quot;:50000.00,&quot;valorAtual&quot;:15000.00,&quot;dataInicio&quot;:&quot;2026-01-01&quot;,&quot;dataFim&quot;:&quot;2028-01-01&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:11&quot;,&quot;percentualConcluido&quot;:30.00},{&quot;id&quot;:6,&quot;nome&quot;:&quot;Comprar Carro&quot;,&quot;valorAlvo&quot;:50000.00,&quot;valorAtual&quot;:15000.00,&quot;dataInicio&quot;:&quot;2026-01-01&quot;,&quot;dataFim&quot;:&quot;2028-01-01&quot;,&quot;dataCriacao&quot;:&quot;2026-05-28T16:18:20&quot;,&quot;percentualConcluido&quot;:30.00}],&quot;totalMetas&quot;:6}
+</pre>
+
+<h2>5. Banco de Dados Integrado ao Sistema</h2>
+<p>Banco relacional MySQL integrado via JPA. Principais tabelas:</p>
+<ul>
+<li><code>transacoes</code></li>
+<li><code>metas_financeiras</code></li>
+</ul>
+<h3>5.1 Evidência do banco</h3>
+<pre>$ mysql -u root -p&#x27;***&#x27; -e &quot;USE finplan_db; SHOW TABLES;&quot;
+Tables_in_finplan_db
+metas_financeiras
+transacoes
+
+$ mysql -u root -p&#x27;***&#x27; -e &quot;USE finplan_db; SELECT COUNT(*) AS total_transacoes FROM transacoes; SELECT COUNT(*) AS total_metas FROM metas_financeiras;&quot;
+total_transacoes
+20
+total_metas
+6
+</pre>
+
+<h2>6. Spring Boot (Aplicação Standalone)</h2>
+<p>Execução padrão do backend: <code>mvn spring-boot:run</code></p>
+<h3>6.1 Evidência de startup</h3>
+<pre>$ mvn spring-boot:run
+...
+63:2026-05-29T11:31:17.311-03:00  INFO 73330 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path &#x27;&#x27;
+64:2026-05-29T11:31:17.316-03:00  INFO 73330 --- [           main] com.finplan.FinPlanApplication           : Started FinPlanApplication in 2.394 seconds (process running for 2.579)
+</pre>
+
+<div class="pagebreak"></div>
+<h2>7. Relatório das Entrevistas (Engenheiros de Requisitos / Stakeholders)</h2>
+<p>Foram realizadas entrevistas semiestruturadas com três perfis de stakeholders para levantar necessidades reais de uso:</p>
+<ul>
+<li><strong>Entrevista 01 (26/05/2026):</strong> Estudante universitário que controla gastos mensais.</li>
+<li><strong>Entrevista 02 (26/05/2026):</strong> Trabalhador CLT responsável por orçamento familiar.</li>
+<li><strong>Entrevista 03 (27/05/2026):</strong> Microempreendedor com despesas variáveis.</li>
+</ul>
+<table>
+<tr><th>Pergunta</th><th>Síntese das respostas</th><th>Requisito derivado</th></tr>
+<tr><td>Qual sua principal dificuldade no controle financeiro?</td><td>Registrar despesas diariamente e manter categorias organizadas para saber para onde o dinheiro está indo.</td><td>RF01 - Cadastro de transações com categoria, tipo e data.</td></tr>
+<tr><td>O que você precisa ver rapidamente ao abrir o sistema?</td><td>Saldo atual, total de receitas e total de despesas do mês em um painel único.</td><td>RF03 - Dashboard consolidado com resumo financeiro.</td></tr>
+<tr><td>Qual funcionalidade ajuda no planejamento de médio prazo?</td><td>Metas com valor alvo, valor atual e progresso percentual visível.</td><td>RF02 - Gestão de metas financeiras.</td></tr>
+<tr><td>Que tipo de relatório é mais útil para decisão?</td><td>Resumo por categoria de despesa e visão do desempenho no período.</td><td>RF04 - Tela de relatórios com totais e categorias.</td></tr>
+</table>
+<p>Conclusão das entrevistas: os stakeholders priorizaram rastreabilidade de gastos no dia a dia, visão imediata de saldo e acompanhamento de metas, orientando diretamente o escopo implementado.</p>
+
+<h2>8. Repositório Versionado no GitHub</h2>
+<p><strong>Repositório publicado:</strong> <a href="https://github.com/matheussennam/finplan-trabalho2-er">https://github.com/matheussennam/finplan-trabalho2-er</a></p>
+<p><strong>Branch principal:</strong> <code>main</code><br/>
+<strong>Commits principais:</strong> <code>8025613</code>, <code>8d08bb6</code>.</p>
+<p>Conteúdo do repositório inclui código-fonte (front + back), documentação e assets usados na entrega.</p>
+
+<h2>9. Estrutura dos Arquivos Entregues</h2>
+<pre>finplan/
+├── backend/
+│   ├── pom.xml
+│   ├── src/main/java/com/finplan/
+│   │   ├── controller/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   └── service/
+│   └── src/main/resources/application.properties
+├── frontend/
+│   ├── index.html
+│   ├── transacoes.html
+│   ├── metas.html
+│   ├── relatorios.html
+│   └── js/app.js
+└── docs/
+    ├── assets/
+    └── entrega_final_completa.pdf
+</pre>
+
+<h2>10. Checklist Final</h2>
+<ul>
+<li>[x] User Stories e cartões de acompanhamento</li>
+<li>[x] Imagem do processo no Trello (board + detalhe do cartão)</li>
+<li>[x] Front-end completo</li>
+<li>[x] Back-end primário + secundário integrado</li>
+<li>[x] Banco de dados integrado</li>
+<li>[x] Spring Boot em execução</li>
+<li>[x] Relatório de entrevistas</li>
+<li>[x] Repositório versionado no GitHub</li>
+<li>[x] Documento único em PDF</li>
+</ul>
+
+<h2>11. Considerações Finais</h2>
+<p>Esta entrega consolida todos os itens obrigatórios solicitados no roteiro da disciplina, com rastreabilidade entre requisitos, implementação e evidências de execução.</p>
+</body>
+</html>

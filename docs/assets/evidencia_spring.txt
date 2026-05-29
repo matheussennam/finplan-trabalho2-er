@@ -1,0 +1,4 @@
+$ mvn spring-boot:run
+...
+63:2026-05-29T11:31:17.311-03:00  INFO 73330 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+64:2026-05-29T11:31:17.316-03:00  INFO 73330 --- [           main] com.finplan.FinPlanApplication           : Started FinPlanApplication in 2.394 seconds (process running for 2.579)

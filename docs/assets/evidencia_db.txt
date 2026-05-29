@@ -1,0 +1,10 @@
+$ mysql -u root -p'***' -e "USE finplan_db; SHOW TABLES;"
+Tables_in_finplan_db
+metas_financeiras
+transacoes
+
+$ mysql -u root -p'***' -e "USE finplan_db; SELECT COUNT(*) AS total_transacoes FROM transacoes; SELECT COUNT(*) AS total_metas FROM metas_financeiras;"
+total_transacoes
+20
+total_metas
+6
