@@ -41,8 +41,12 @@ public class MetaFinanceiraController {
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
-        meta.setId(id);
-        return ResponseEntity.ok(service.save(meta));
+        existing.setNome(meta.getNome() != null ? meta.getNome() : existing.getNome());
+        existing.setValorAlvo(meta.getValorAlvo() != null ? meta.getValorAlvo() : existing.getValorAlvo());
+        existing.setValorAtual(meta.getValorAtual() != null ? meta.getValorAtual() : existing.getValorAtual());
+        existing.setDataFim(meta.getDataFim() != null ? meta.getDataFim() : existing.getDataFim());
+
+        return ResponseEntity.ok(service.save(existing));
     }
     
     @DeleteMapping("/{id}")
