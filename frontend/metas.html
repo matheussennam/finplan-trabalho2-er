@@ -20,7 +20,7 @@
                 </h1>
             </div>
             <nav class="mt-6">
-                <a href="index.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <a href="dashboard.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
                     <i class="fas fa-home"></i> Dashboard
                 </a>
                 <a href="transacoes.html" class="flex items-center gap-3 px-6 py-3 text-slate-300 hover:bg-slate-800 hover:text-white transition">
@@ -39,6 +39,9 @@
             <header class="glass sticky top-0 z-50 border-b border-slate-700">
                 <div class="flex items-center justify-between px-6 py-4">
                     <h2 class="text-2xl font-bold text-white">Metas Financeiras</h2>
+                    <button onclick="logout()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fas fa-right-from-bracket"></i> Sair
+                    </button>
                 </div>
             </header>
 
@@ -78,19 +81,9 @@
         </main>
     </div>
 
+    <script src="js/app.js"></script>
     <script>
-        const API_URL = 'http://localhost:8080/api';
-        const API_USER = 'aluno';
-        const API_PASSWORD = '123456';
-
-        function apiFetch(path, options = {}) {
-            const authHeader = 'Basic ' + btoa(`${API_USER}:${API_PASSWORD}`);
-            const headers = {
-                Authorization: authHeader,
-                ...(options.headers || {})
-            };
-            return fetch(`${API_URL}${path}`, { ...options, headers });
-        }
+        const apiFetch = window.apiFetch;
 
         function moeda(valor) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor || 0));

@@ -42,6 +42,11 @@ python3 -m http.server 5500
 ```
 Front-end em: `http://localhost:5500/index.html`
 
+### 3) Acessar com login
+- A tela inicial agora é de autenticação.
+- URL de login: `http://localhost:5500/index.html`
+- Após entrar, o dashboard abre em: `http://localhost:5500/dashboard.html`
+
 ## Endpoints principais
 - `GET /api/transacoes`
 - `POST /api/transacoes`
@@ -55,6 +60,7 @@ Front-end em: `http://localhost:5500/index.html`
 - Credenciais de demonstração:
   - Usuário: `aluno`
   - Senha: `123456`
+- O front-end usa essas credenciais no login e grava sessão no navegador para navegar entre as telas.
 
 Exemplo de teste:
 ```bash

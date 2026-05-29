@@ -1,14 +1,106 @@
 const API_URL = 'http://localhost:8080/api';
-const API_USER = 'aluno';
-const API_PASSWORD = '123456';
+const AUTH_STORAGE_KEY = 'finplanAuth';
 
-function apiFetch(path, options = {}) {
-    const authHeader = 'Basic ' + btoa(`${API_USER}:${API_PASSWORD}`);
+function getCurrentPage() {
+    const pathname = window.location.pathname;
+    const file = pathname.substring(pathname.lastIndexOf('/') + 1);
+    return file || 'index.html';
+}
+
+function setAuthCredentials(usuario, senha) {
+    sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ usuario, senha }));
+}
+
+function getAuthCredentials() {
+    const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return null;
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (!parsed?.usuario || !parsed?.senha) return null;
+        return parsed;
+    } catch {
+        return null;
+    }
+}
+
+function clearAuthCredentials() {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+function ensureAuthenticated() {
+    const protectedPages = ['dashboard.html', 'transacoes.html', 'metas.html', 'relatorios.html'];
+    const page = getCurrentPage();
+    if (protectedPages.includes(page) && !getAuthCredentials()) {
+        window.location.href = 'index.html';
+    }
+}
+
+function logout() {
+    clearAuthCredentials();
+    window.location.href = 'index.html';
+}
+
+async function apiFetch(path, options = {}) {
+    const auth = getAuthCredentials();
+    if (!auth) {
+        throw new Error('Usuário não autenticado');
+    }
+
+    const authHeader = 'Basic ' + btoa(`${auth.usuario}:${auth.senha}`);
     const headers = {
         Authorization: authHeader,
         ...(options.headers || {})
     };
-    return fetch(`${API_URL}${path}`, { ...options, headers });
+
+    const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+    if (response.status === 401 || response.status === 403) {
+        clearAuthCredentials();
+        window.location.href = 'index.html';
+        throw new Error('Sessão inválida');
+    }
+
+    return response;
+}
+
+function setupLoginPage() {
+    const form = document.getElementById('formLogin');
+    const mensagem = document.getElementById('mensagemLogin');
+
+    if (!form || !mensagem) return;
+
+    if (getAuthCredentials()) {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(form);
+        const usuario = String(formData.get('usuario') || '').trim();
+        const senha = String(formData.get('senha') || '').trim();
+
+        if (!usuario || !senha) {
+            mensagem.textContent = 'Informe usuário e senha.';
+            mensagem.className = 'mt-4 text-sm text-red-400';
+            return;
+        }
+
+        setAuthCredentials(usuario, senha);
+
+        try {
+            const test = await apiFetch('/transacoes');
+            if (!test.ok) {
+                throw new Error('Credenciais inválidas');
+            }
+            window.location.href = 'dashboard.html';
+        } catch {
+            clearAuthCredentials();
+            mensagem.textContent = 'Falha no login. Confira usuário e senha.';
+            mensagem.className = 'mt-4 text-sm text-red-400';
+        }
+    });
 }
 
 // Formatação de moeda
@@ -29,35 +121,25 @@ async function carregarDashboard() {
     try {
         const inicio = '2026-05-01';
         const fim = '2026-05-28';
-        
-        // Buscar resumo
+
         const resumoResponse = await apiFetch(`/transacoes/resumo?inicio=${inicio}&fim=${fim}`);
         const resumo = await resumoResponse.json();
-        
-        // Atualizar cards
+
         document.getElementById('totalReceitas').textContent = formatarMoeda(resumo.totalReceitas);
         document.getElementById('totalDespesas').textContent = formatarMoeda(resumo.totalDespesas);
         document.getElementById('saldoAtual').textContent = formatarMoeda(resumo.totalReceitas - resumo.totalDespesas);
-        
-        // Buscar metas
+
         const metasResponse = await apiFetch('/metas/resumo');
         const metas = await metasResponse.json();
         document.getElementById('metasConcluidas').textContent = `${metas.metasConcluidas} / ${metas.totalMetas}`;
         const percentual = metas.totalMetas > 0 ? (metas.metasConcluidas / metas.totalMetas * 100).toFixed(0) : 0;
         document.getElementById('percentualMetas').textContent = `${percentual}% concluído`;
-        
-        // Gráfico de Fluxo de Caixa
+
         criarGraficoFluxoCaixa();
-        
-        // Gráfico de Despesas por Categoria
         criarGraficoDespesasCategoria(resumo.despesasPorCategoria);
-        
-        // Últimas transações
         carregarUltimasTransacoes();
-        
-        // Metas ativas
         carregarMetasAtivas();
-        
+
     } catch (error) {
         console.error('Erro ao carregar dashboard:', error);
     }
@@ -66,7 +148,7 @@ async function carregarDashboard() {
 function criarGraficoFluxoCaixa() {
     const ctx = document.getElementById('fluxoCaixaChart')?.getContext('2d');
     if (!ctx) return;
-    
+
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -101,7 +183,7 @@ function criarGraficoFluxoCaixa() {
             scales: {
                 y: {
                     grid: { color: '#334155' },
-                    ticks: { 
+                    ticks: {
                         color: '#94a3b8',
                         callback: function(value) {
                             return 'R$ ' + value;
@@ -120,11 +202,11 @@ function criarGraficoFluxoCaixa() {
 function criarGraficoDespesasCategoria(despesasPorCategoria) {
     const ctx = document.getElementById('despesasCategoriaChart')?.getContext('2d');
     if (!ctx) return;
-    
+
     const categorias = Object.keys(despesasPorCategoria);
     const valores = Object.values(despesasPorCategoria);
     const total = valores.reduce((a, b) => a + b, 0);
-    
+
     new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -132,7 +214,7 @@ function criarGraficoDespesasCategoria(despesasPorCategoria) {
             datasets: [{
                 data: valores,
                 backgroundColor: [
-                    '#3b82f6', '#8b5cf6', '#f97316', 
+                    '#3b82f6', '#8b5cf6', '#f97316',
                     '#10b981', '#14b8a6', '#ef4444'
                 ],
                 borderWidth: 0
@@ -144,7 +226,7 @@ function criarGraficoDespesasCategoria(despesasPorCategoria) {
             plugins: {
                 legend: {
                     position: 'right',
-                    labels: { 
+                    labels: {
                         color: '#94a3b8',
                         padding: 15
                     }
@@ -152,8 +234,7 @@ function criarGraficoDespesasCategoria(despesasPorCategoria) {
             }
         }
     });
-    
-    // Adicionar legenda personalizada
+
     const legendaContainer = document.getElementById('despesasCategoriaChart')?.parentNode;
     if (legendaContainer) {
         let html = '<div class="mt-4 space-y-2">';
@@ -181,10 +262,10 @@ async function carregarUltimasTransacoes() {
     try {
         const response = await apiFetch('/transacoes/ultimas');
         const transacoes = await response.json();
-        
+
         const container = document.getElementById('listaTransacoes');
         if (!container) return;
-        
+
         container.innerHTML = transacoes.map(t => `
             <div class="flex items-center justify-between p-3 bg-slate-800 rounded-lg hover:bg-slate-750 transition">
                 <div class="flex items-center gap-3">
@@ -210,10 +291,10 @@ async function carregarMetasAtivas() {
     try {
         const response = await apiFetch('/metas/ativas');
         const metas = await response.json();
-        
+
         const container = document.getElementById('listaMetas');
         if (!container) return;
-        
+
         container.innerHTML = metas.map(meta => {
             const percentual = meta.percentualConcluido || 0;
             return `
@@ -256,7 +337,7 @@ async function carregarTransacoes() {
 function renderizarTransacoes(transacoes) {
     const tbody = document.getElementById('tabelaTransacoes');
     if (!tbody) return;
-    
+
     tbody.innerHTML = transacoes.map(t => `
         <tr class="hover:bg-slate-800 transition">
             <td class="px-6 py-4 text-sm text-slate-300">${formatarData(t.data)}</td>
@@ -286,14 +367,14 @@ function filtrarTransacoes() {
     const descricao = document.getElementById('filtroDescricao')?.value.toLowerCase() || '';
     const tipo = document.getElementById('filtroTipo')?.value || '';
     const categoria = document.getElementById('filtroCategoria')?.value || '';
-    
+
     const filtradas = todasTransacoes.filter(t => {
         const matchDescricao = t.descricao.toLowerCase().includes(descricao);
         const matchTipo = !tipo || t.tipo === tipo;
         const matchCategoria = !categoria || t.categoria === categoria;
         return matchDescricao && matchTipo && matchCategoria;
     });
-    
+
     renderizarTransacoes(filtradas);
 }
 
@@ -310,7 +391,7 @@ function fecharModalTransacao() {
 // Submit form
 document.getElementById('formTransacao')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData(e.target);
     const transacao = {
         descricao: formData.get('descricao'),
@@ -319,14 +400,14 @@ document.getElementById('formTransacao')?.addEventListener('submit', async (e) =
         categoria: formData.get('categoria'),
         data: formData.get('data')
     };
-    
+
     try {
         await apiFetch('/transacoes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(transacao)
         });
-        
+
         fecharModalTransacao();
         carregarTransacoes();
         if (document.getElementById('listaTransacoes')) {
@@ -338,14 +419,13 @@ document.getElementById('formTransacao')?.addEventListener('submit', async (e) =
     }
 });
 
-async function editarTransacao(id) {
-    // Implementar edição
+async function editarTransacao() {
     alert('Funcionalidade de edição em desenvolvimento');
 }
 
 async function excluirTransacao(id) {
     if (!confirm('Deseja realmente excluir esta transação?')) return;
-    
+
     try {
         await apiFetch(`/transacoes/${id}`, { method: 'DELETE' });
         carregarTransacoes();
@@ -358,12 +438,20 @@ async function excluirTransacao(id) {
     }
 }
 
-// Inicialização
-if (window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/')) {
+// Inicialização por página
+ensureAuthenticated();
+
+if (getCurrentPage() === 'index.html') {
+    document.addEventListener('DOMContentLoaded', setupLoginPage);
+}
+
+if (getCurrentPage() === 'dashboard.html') {
     document.addEventListener('DOMContentLoaded', carregarDashboard);
 }
 
 // Exportar funções globais
+window.apiFetch = apiFetch;
+window.logout = logout;
 window.abrirModalTransacao = abrirModalTransacao;
 window.fecharModalTransacao = fecharModalTransacao;
 window.editarTransacao = editarTransacao;
