@@ -50,6 +50,17 @@ Front-end em: `http://localhost:5500/index.html`
 - `POST /api/metas`
 - `GET /api/metas/resumo`
 
+## Segurança (Spring Security)
+- O backend protege `/api/**` com **HTTP Basic**.
+- Credenciais de demonstração:
+  - Usuário: `aluno`
+  - Senha: `123456`
+
+Exemplo de teste:
+```bash
+curl -u aluno:123456 http://localhost:8080/api/transacoes
+```
+
 ## Documentação da entrega
 - PDF final: `docs/entrega_final_completa.pdf`
 - Fonte HTML do PDF: `docs/entrega_final_completa.html`

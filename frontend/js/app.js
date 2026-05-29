@@ -1,4 +1,15 @@
 const API_URL = 'http://localhost:8080/api';
+const API_USER = 'aluno';
+const API_PASSWORD = '123456';
+
+function apiFetch(path, options = {}) {
+    const authHeader = 'Basic ' + btoa(`${API_USER}:${API_PASSWORD}`);
+    const headers = {
+        Authorization: authHeader,
+        ...(options.headers || {})
+    };
+    return fetch(`${API_URL}${path}`, { ...options, headers });
+}
 
 // Formatação de moeda
 function formatarMoeda(valor) {
@@ -20,7 +31,7 @@ async function carregarDashboard() {
         const fim = '2026-05-28';
         
         // Buscar resumo
-        const resumoResponse = await fetch(`${API_URL}/transacoes/resumo?inicio=${inicio}&fim=${fim}`);
+        const resumoResponse = await apiFetch(`/transacoes/resumo?inicio=${inicio}&fim=${fim}`);
         const resumo = await resumoResponse.json();
         
         // Atualizar cards
@@ -29,7 +40,7 @@ async function carregarDashboard() {
         document.getElementById('saldoAtual').textContent = formatarMoeda(resumo.totalReceitas - resumo.totalDespesas);
         
         // Buscar metas
-        const metasResponse = await fetch(`${API_URL}/metas/resumo`);
+        const metasResponse = await apiFetch('/metas/resumo');
         const metas = await metasResponse.json();
         document.getElementById('metasConcluidas').textContent = `${metas.metasConcluidas} / ${metas.totalMetas}`;
         const percentual = metas.totalMetas > 0 ? (metas.metasConcluidas / metas.totalMetas * 100).toFixed(0) : 0;
@@ -168,7 +179,7 @@ function criarGraficoDespesasCategoria(despesasPorCategoria) {
 
 async function carregarUltimasTransacoes() {
     try {
-        const response = await fetch(`${API_URL}/transacoes/ultimas`);
+        const response = await apiFetch('/transacoes/ultimas');
         const transacoes = await response.json();
         
         const container = document.getElementById('listaTransacoes');
@@ -197,7 +208,7 @@ async function carregarUltimasTransacoes() {
 
 async function carregarMetasAtivas() {
     try {
-        const response = await fetch(`${API_URL}/metas/ativas`);
+        const response = await apiFetch('/metas/ativas');
         const metas = await response.json();
         
         const container = document.getElementById('listaMetas');
@@ -234,7 +245,7 @@ let todasTransacoes = [];
 
 async function carregarTransacoes() {
     try {
-        const response = await fetch(`${API_URL}/transacoes`);
+        const response = await apiFetch('/transacoes');
         todasTransacoes = await response.json();
         renderizarTransacoes(todasTransacoes);
     } catch (error) {
@@ -310,7 +321,7 @@ document.getElementById('formTransacao')?.addEventListener('submit', async (e) =
     };
     
     try {
-        await fetch(`${API_URL}/transacoes`, {
+        await apiFetch('/transacoes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(transacao)
@@ -336,7 +347,7 @@ async function excluirTransacao(id) {
     if (!confirm('Deseja realmente excluir esta transação?')) return;
     
     try {
-        await fetch(`${API_URL}/transacoes/${id}`, { method: 'DELETE' });
+        await apiFetch(`/transacoes/${id}`, { method: 'DELETE' });
         carregarTransacoes();
         if (document.getElementById('listaTransacoes')) {
             carregarDashboard();

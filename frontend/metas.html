@@ -80,6 +80,17 @@
 
     <script>
         const API_URL = 'http://localhost:8080/api';
+        const API_USER = 'aluno';
+        const API_PASSWORD = '123456';
+
+        function apiFetch(path, options = {}) {
+            const authHeader = 'Basic ' + btoa(`${API_USER}:${API_PASSWORD}`);
+            const headers = {
+                Authorization: authHeader,
+                ...(options.headers || {})
+            };
+            return fetch(`${API_URL}${path}`, { ...options, headers });
+        }
 
         function moeda(valor) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor || 0));
@@ -90,7 +101,7 @@
         }
 
         async function carregarMetasPagina() {
-            const res = await fetch(`${API_URL}/metas`);
+            const res = await apiFetch('/metas');
             const metas = await res.json();
             const lista = document.getElementById('listaMetas');
 
@@ -126,7 +137,7 @@
             document.querySelectorAll('.btn-excluir').forEach((btn) => {
                 btn.addEventListener('click', async () => {
                     if (!confirm('Deseja excluir esta meta?')) return;
-                    await fetch(`${API_URL}/metas/${btn.dataset.id}`, { method: 'DELETE' });
+                    await apiFetch(`/metas/${btn.dataset.id}`, { method: 'DELETE' });
                     await carregarMetasPagina();
                 });
             });
@@ -144,7 +155,7 @@
 
             const status = document.getElementById('statusMeta');
             try {
-                await fetch(`${API_URL}/metas`, {
+                await apiFetch('/metas', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)

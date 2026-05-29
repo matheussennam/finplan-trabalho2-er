@@ -83,6 +83,17 @@
 
     <script>
         const API_URL = 'http://localhost:8080/api';
+        const API_USER = 'aluno';
+        const API_PASSWORD = '123456';
+
+        function apiFetch(path, options = {}) {
+            const authHeader = 'Basic ' + btoa(`${API_USER}:${API_PASSWORD}`);
+            const headers = {
+                Authorization: authHeader,
+                ...(options.headers || {})
+            };
+            return fetch(`${API_URL}${path}`, { ...options, headers });
+        }
 
         function moeda(valor) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor || 0));
@@ -97,8 +108,8 @@
                 const fim = '2026-05-28';
 
                 const [resumoResp, metasResp] = await Promise.all([
-                    fetch(`${API_URL}/transacoes/resumo?inicio=${inicio}&fim=${fim}`),
-                    fetch(`${API_URL}/metas/resumo`)
+                    apiFetch(`/transacoes/resumo?inicio=${inicio}&fim=${fim}`),
+                    apiFetch('/metas/resumo')
                 ]);
 
                 const resumo = await resumoResp.json();
