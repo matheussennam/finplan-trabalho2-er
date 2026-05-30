@@ -71,5 +71,4 @@ curl -u aluno:123456 http://localhost:8080/api/transacoes
 - PDF final: `docs/entrega_final_completa.pdf`
 - Fonte HTML do PDF: `docs/entrega_final_completa.html`
 
-## Repositório
-https://github.com/matheussennam/finplan-trabalho2-er
+
