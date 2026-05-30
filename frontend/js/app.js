@@ -2,6 +2,38 @@ const API_URL = 'http://localhost:8080/api';
 const AUTH_STORAGE_KEY = 'finplanAuth';
 let fluxoCaixaChartInstance = null;
 let despesasCategoriaChartInstance = null;
+let transacaoEmEdicaoId = null;
+
+function normalizarTexto(texto) {
+    if (typeof texto !== 'string') return texto;
+    let valor = texto;
+
+    if (/[ÃÂ]/.test(valor)) {
+        try {
+            valor = decodeURIComponent(escape(valor));
+        } catch {}
+    }
+
+    const mapa = {
+        '├í': 'á',
+        '├º': 'ç',
+        '├ú': 'ã',
+        '├║': 'ú',
+        '├¡': 'í',
+        '├¬': 'ê',
+        '├â': 'é',
+        '├ô': 'õ',
+        '├Ç': 'Á',
+        '├ë': 'É',
+        '├âo': 'ão'
+    };
+
+    Object.entries(mapa).forEach(([mojibake, correto]) => {
+        valor = valor.split(mojibake).join(correto);
+    });
+
+    return valor;
+}
 
 function getCurrentPage() {
     const pathname = window.location.pathname;
@@ -260,7 +292,7 @@ function criarGraficoDespesasCategoria(despesasPorCategoria) {
                 <div class="flex justify-between items-center text-sm">
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded" style="background-color: ${['#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#14b8a6', '#ef4444'][index]}"></div>
-                        <span class="text-slate-300">${cat}</span>
+                        <span class="text-slate-300">${normalizarTexto(cat)}</span>
                     </div>
                     <div class="flex gap-4">
                         <span class="text-slate-400">${percentual}%</span>
@@ -289,8 +321,8 @@ async function carregarUltimasTransacoes() {
                         <i class="fas fa-${t.tipo === 'RECEITA' ? 'arrow-down' : 'arrow-up'}"></i>
                     </div>
                     <div>
-                        <p class="text-white font-medium">${t.descricao}</p>
-                        <p class="text-slate-400 text-xs">${t.categoria} • ${formatarData(t.data)}</p>
+                        <p class="text-white font-medium">${normalizarTexto(t.descricao)}</p>
+                        <p class="text-slate-400 text-xs">${normalizarTexto(t.categoria)} • ${formatarData(t.data)}</p>
                     </div>
                 </div>
                 <span class="font-semibold ${t.tipo === 'RECEITA' ? 'text-green-400' : 'text-red-400'}">
@@ -317,7 +349,7 @@ async function carregarMetasAtivas() {
                 <div class="p-4 bg-slate-800 rounded-lg">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <h4 class="text-white font-medium">${meta.nome}</h4>
+                            <h4 class="text-white font-medium">${normalizarTexto(meta.nome)}</h4>
                             <p class="text-slate-400 text-xs">${formatarData(meta.dataInicio)} - ${formatarData(meta.dataFim)}</p>
                         </div>
                         <span class="text-blue-400 font-semibold">${percentual}%</span>
@@ -357,8 +389,8 @@ function renderizarTransacoes(transacoes) {
     tbody.innerHTML = transacoes.map(t => `
         <tr class="hover:bg-slate-800 transition">
             <td class="px-6 py-4 text-sm text-slate-300">${formatarData(t.data)}</td>
-            <td class="px-6 py-4 text-sm text-white font-medium">${t.descricao}</td>
-            <td class="px-6 py-4 text-sm text-slate-300">${t.categoria}</td>
+            <td class="px-6 py-4 text-sm text-white font-medium">${normalizarTexto(t.descricao)}</td>
+            <td class="px-6 py-4 text-sm text-slate-300">${normalizarTexto(t.categoria)}</td>
             <td class="px-6 py-4">
                 <span class="px-2 py-1 text-xs rounded-full ${t.tipo === 'RECEITA' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
                     ${t.tipo === 'RECEITA' ? 'Receita' : 'Despesa'}
@@ -385,9 +417,10 @@ function filtrarTransacoes() {
     const categoria = document.getElementById('filtroCategoria')?.value || '';
 
     const filtradas = todasTransacoes.filter(t => {
-        const matchDescricao = t.descricao.toLowerCase().includes(descricao);
+        const descricaoNormalizada = String(normalizarTexto(t.descricao) || '').toLowerCase();
+        const matchDescricao = descricaoNormalizada.includes(descricao);
         const matchTipo = !tipo || t.tipo === tipo;
-        const matchCategoria = !categoria || t.categoria === categoria;
+        const matchCategoria = !categoria || normalizarTexto(t.categoria) === categoria;
         return matchDescricao && matchTipo && matchCategoria;
     });
 
@@ -396,12 +429,28 @@ function filtrarTransacoes() {
 
 // Modal
 function abrirModalTransacao() {
-    document.getElementById('modalTransacao').classList.remove('hidden');
+    transacaoEmEdicaoId = null;
+
+    const form = document.getElementById('formTransacao');
+    form?.reset();
+
+    const titulo = document.getElementById('modalTituloTransacao');
+    const botaoSalvar = document.getElementById('btnSalvarTransacao');
+    if (titulo) titulo.textContent = 'Nova Transação';
+    if (botaoSalvar) botaoSalvar.textContent = 'Salvar';
+
+    document.getElementById('modalTransacao')?.classList.remove('hidden');
 }
 
 function fecharModalTransacao() {
-    document.getElementById('modalTransacao').classList.add('hidden');
+    transacaoEmEdicaoId = null;
+    document.getElementById('modalTransacao')?.classList.add('hidden');
     document.getElementById('formTransacao')?.reset();
+
+    const titulo = document.getElementById('modalTituloTransacao');
+    const botaoSalvar = document.getElementById('btnSalvarTransacao');
+    if (titulo) titulo.textContent = 'Nova Transação';
+    if (botaoSalvar) botaoSalvar.textContent = 'Salvar';
 }
 
 // Submit form
@@ -418,8 +467,11 @@ document.getElementById('formTransacao')?.addEventListener('submit', async (e) =
     };
 
     try {
-        await apiFetch('/transacoes', {
-            method: 'POST',
+        const metodo = transacaoEmEdicaoId ? 'PUT' : 'POST';
+        const endpoint = transacaoEmEdicaoId ? `/transacoes/${transacaoEmEdicaoId}` : '/transacoes';
+
+        await apiFetch(endpoint, {
+            method: metodo,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(transacao)
         });
@@ -435,8 +487,30 @@ document.getElementById('formTransacao')?.addEventListener('submit', async (e) =
     }
 });
 
-async function editarTransacao() {
-    alert('Funcionalidade de edição em desenvolvimento');
+async function editarTransacao(id) {
+    const transacao = todasTransacoes.find((item) => item.id === id);
+    if (!transacao) {
+        alert('Transação não encontrada para edição.');
+        return;
+    }
+
+    transacaoEmEdicaoId = id;
+
+    const form = document.getElementById('formTransacao');
+    if (!form) return;
+
+    form.descricao.value = normalizarTexto(transacao.descricao || '');
+    form.valor.value = transacao.valor;
+    form.tipo.value = transacao.tipo;
+    form.categoria.value = normalizarTexto(transacao.categoria || '');
+    form.data.value = String(transacao.data || '').slice(0, 10);
+
+    const titulo = document.getElementById('modalTituloTransacao');
+    const botaoSalvar = document.getElementById('btnSalvarTransacao');
+    if (titulo) titulo.textContent = 'Editar Transação';
+    if (botaoSalvar) botaoSalvar.textContent = 'Atualizar';
+
+    document.getElementById('modalTransacao')?.classList.remove('hidden');
 }
 
 async function excluirTransacao(id) {

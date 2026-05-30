@@ -49,6 +49,7 @@
                 <section class="glass rounded-xl border border-slate-700 p-5 lg:col-span-1">
                     <h3 class="text-lg font-semibold text-white mb-4">Nova Meta</h3>
                     <form id="formMeta" class="space-y-3">
+                        <input type="hidden" name="metaId" />
                         <div>
                             <label class="block text-sm text-slate-400 mb-1">Nome</label>
                             <input name="nome" required class="w-full bg-slate-800 text-white rounded-lg px-3 py-2 border border-slate-600" />
@@ -65,7 +66,8 @@
                             <label class="block text-sm text-slate-400 mb-1">Data final</label>
                             <input name="dataFim" type="date" required class="w-full bg-slate-800 text-white rounded-lg px-3 py-2 border border-slate-600" />
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Salvar Meta</button>
+                        <button id="btnSalvarMeta" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Salvar Meta</button>
+                        <button id="btnCancelarEdicaoMeta" type="button" class="hidden w-full bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg transition">Cancelar edição</button>
                     </form>
                     <p id="statusMeta" class="text-sm text-slate-400 mt-3"></p>
                 </section>
@@ -81,7 +83,7 @@
         </main>
     </div>
 
-    <script src="js/app.js?v=20260529"></script>
+    <script src="js/app.js?v=20260530"></script>
     <script>
         const API_BASE_METAS = 'http://localhost:8080/api';
 
@@ -117,6 +119,50 @@
             return new Date(data).toLocaleDateString('pt-BR');
         }
 
+        function normalizarTexto(texto) {
+            if (typeof texto !== 'string') return texto;
+            let valor = texto;
+
+            if (/[ÃÂ]/.test(valor)) {
+                try {
+                    valor = decodeURIComponent(escape(valor));
+                } catch {}
+            }
+
+            const mapa = {
+                '├í': 'á',
+                '├º': 'ç',
+                '├ú': 'ã',
+                '├║': 'ú',
+                '├¡': 'í',
+                '├¬': 'ê',
+                '├â': 'é',
+                '├ô': 'õ',
+                '├Ç': 'Á',
+                '├ë': 'É',
+                '├âo': 'ão'
+            };
+
+            Object.entries(mapa).forEach(([mojibake, correto]) => {
+                valor = valor.split(mojibake).join(correto);
+            });
+
+            return valor;
+        }
+
+        function resetarFormularioMeta() {
+            const form = document.getElementById('formMeta');
+            const btnSalvar = document.getElementById('btnSalvarMeta');
+            const btnCancelar = document.getElementById('btnCancelarEdicaoMeta');
+            const status = document.getElementById('statusMeta');
+
+            form.reset();
+            form.metaId.value = '';
+            btnSalvar.textContent = 'Salvar Meta';
+            btnCancelar.classList.add('hidden');
+            status.textContent = '';
+        }
+
         async function carregarMetasPagina() {
             const lista = document.getElementById('listaMetas');
             try {
@@ -138,12 +184,17 @@
                     <article class="bg-slate-800 rounded-lg p-4 border border-slate-700">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <h4 class="text-white font-semibold">${m.nome}</h4>
+                                <h4 class="text-white font-semibold">${normalizarTexto(m.nome)}</h4>
                                 <p class="text-slate-400 text-sm">Fim: ${dataPt(m.dataFim)}</p>
                             </div>
-                            <button data-id="${m.id}" class="btn-excluir text-red-400 hover:text-red-300" title="Excluir">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <div class="flex items-center gap-3">
+                                <button data-id="${m.id}" class="btn-editar text-blue-400 hover:text-blue-300" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button data-id="${m.id}" class="btn-excluir text-red-400 hover:text-red-300" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="mt-3 w-full bg-slate-700 rounded-full h-2">
                             <div class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" style="width:${Math.min(100, pct)}%"></div>
@@ -163,6 +214,29 @@
                         await carregarMetasPagina();
                     });
                 });
+
+                document.querySelectorAll('.btn-editar').forEach((btn) => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.id;
+                        const res = await apiFetch(`/metas/${id}`);
+                        if (!res.ok) return;
+
+                        const meta = await res.json();
+                        const form = document.getElementById('formMeta');
+                        const btnSalvar = document.getElementById('btnSalvarMeta');
+                        const btnCancelar = document.getElementById('btnCancelarEdicaoMeta');
+
+                        form.metaId.value = meta.id;
+                        form.nome.value = normalizarTexto(meta.nome || '');
+                        form.valorAlvo.value = meta.valorAlvo;
+                        form.valorAtual.value = meta.valorAtual;
+                        form.dataFim.value = String(meta.dataFim || '').slice(0, 10);
+
+                        btnSalvar.textContent = 'Atualizar Meta';
+                        btnCancelar.classList.remove('hidden');
+                        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                });
             } catch (err) {
                 lista.innerHTML = '<p class="text-red-400">Erro ao carregar metas.</p>';
             }
@@ -171,6 +245,7 @@
         document.getElementById('formMeta').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
+            const metaId = String(fd.get('metaId') || '').trim();
             const payload = {
                 nome: fd.get('nome'),
                 valorAlvo: Number(fd.get('valorAlvo')),
@@ -180,13 +255,17 @@
 
             const status = document.getElementById('statusMeta');
             try {
-                await apiFetch('/metas', {
-                    method: 'POST',
+                const endpoint = metaId ? `/metas/${metaId}` : '/metas';
+                const method = metaId ? 'PUT' : 'POST';
+
+                await apiFetch(endpoint, {
+                    method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                e.target.reset();
-                status.textContent = 'Meta salva com sucesso.';
+
+                resetarFormularioMeta();
+                status.textContent = metaId ? 'Meta atualizada com sucesso.' : 'Meta salva com sucesso.';
                 status.className = 'text-sm text-green-400 mt-3';
                 await carregarMetasPagina();
             } catch (err) {
@@ -195,8 +274,12 @@
             }
         });
 
+        document.getElementById('btnCancelarEdicaoMeta').addEventListener('click', resetarFormularioMeta);
         document.getElementById('btnAtualizar').addEventListener('click', carregarMetasPagina);
-        document.addEventListener('DOMContentLoaded', carregarMetasPagina);
+        document.addEventListener('DOMContentLoaded', () => {
+            resetarFormularioMeta();
+            carregarMetasPagina();
+        });
     </script>
 </body>
 </html>

@@ -2,6 +2,8 @@
 CREATE DATABASE IF NOT EXISTS finplan_db;
 USE finplan_db;
 
+SET NAMES utf8mb4;
+
 -- Tabela de Transações
 CREATE TABLE IF NOT EXISTS transacoes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

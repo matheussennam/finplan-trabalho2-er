@@ -96,7 +96,7 @@
     <!-- Modal -->
     <div id="modalTransacao" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
         <div class="glass rounded-xl p-6 w-full max-w-md border border-slate-700">
-            <h3 class="text-xl font-bold text-white mb-4">Nova Transação</h3>
+            <h3 id="modalTituloTransacao" class="text-xl font-bold text-white mb-4">Nova Transação</h3>
             <form id="formTransacao" class="space-y-4">
                 <div>
                     <label class="block text-sm text-slate-400 mb-1">Descrição</label>
@@ -131,13 +131,13 @@
                 </div>
                 <div class="flex gap-3">
                     <button type="button" onclick="fecharModalTransacao()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg transition">Cancelar</button>
-                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Salvar</button>
+                    <button id="btnSalvarTransacao" type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=20260530"></script>
     <script>
         // Carregar transações ao iniciar
         document.addEventListener('DOMContentLoaded', carregarTransacoes);
